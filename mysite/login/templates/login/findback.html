@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}密码找回{% endblock %}
+{% block css %}
+<link href="{% static 'login/css/login.css' %}" rel="stylesheet"/>{% endblock %}
+
+
+{% block content %}
+<div class="container">
+    <div class="col-md-4 col-md-offset-4">
+        <form class='form-login' action="/findback/" method="post">
+            {% if message %}
+            <div class="alert alert-warning">{{ message }}</div>
+            {% endif %}
+
+            {% csrf_token %}
+            <h2 class="text-center">Forgot Password</h2>
+            <div class="form-group">
+                <p><label for="id_username">UserID or Phone Number:</label>
+                </p>
+
+                <input type="text" name='username' class="form-control" id="id_username"
+                       placeholder="UserID or Phone Number"
+                       autofocus required>
+                <p>Note：The password will be sent back to the email when registration</p>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg btn-block">
+                Retrieve password
+            </button>
+        </form>
+    </div>
+</div> <!-- /container -->
+{% endblock %}

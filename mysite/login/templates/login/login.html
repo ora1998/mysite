@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block title %}登录{% endblock %}
+
+{% block css %}
+    <link href="{% static 'login/css/login.css' %}" rel="stylesheet"/>
+{% endblock %}
+
+
+{% block content %}
+    <div class="container">
+        <div class="col-md-4 col-md-offset-4">
+            <form class='form-login' action="/login/" method="post">
+                {% if message %}
+                    <div class="alert alert-warning">{{ message }}</div>
+                {% endif %}
+
+                {% csrf_token %}
+                <h2 class="text-center">欢迎登录</p>Welcome</h2>
+                <div class="form-group">
+                    <label for="id_username">UserID or Phone Number：</label>
+                    <input type="text" name='username' class="form-control" id="id_username"
+                           placeholder="Userid or Phone Number"
+                           autofocus required>
+                </div>
+                <div class="form-group">
+                    <label for="id_password">Password：</label>
+                    <input type="password" name='password' class="form-control" id="id_password"
+                           placeholder="Password"
+                           required>
+                </div>
+
+                <button type="reset" class="btn btn-default pull-left">Clear</button>
+                <button type="submit" class="btn btn-primary pull-right">Go</button>
+                <!--
+                <a class="btn btn-link pull-left" href="/findback/" role="button">Forgot Password</a>
+                <a class="btn btn-link pull-left" href="/register/" role="button">Register</a>
+                -->
+                <span style="font-size: 60px; id=" forgot">
+                    <a href="/findback/" id="findback">Forgot Password</a>
+
+                    <a href="/register/" id="register">Register</a>
+                </span>
+
+            </form>
+        </div>
+    </div> <!-- /container -->
+{% endblock %}
