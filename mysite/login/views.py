@@ -13,6 +13,8 @@ from django.shortcuts import get_object_or_404,get_list_or_404
 import datetime
 from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
+# Locale support
+from django.utils.translation import gettext as _
 
 
 def index(request):
@@ -24,7 +26,9 @@ def login(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        message = '请检查填写的内容！'
+        # Translators: this default message for a username/password login attempt
+        message = _('Please verify the content of the form')
+        #message = '请检查填写的内容！'
         if username.strip() and password:
             # print(username + ":" + password)
             # 用户名字符合法性验证
@@ -34,14 +38,18 @@ def login(request):
                 user = models.User.objects.get(name=username)
                 # print(user.password)
             except :
-                message = '用户不存在！'
+                # TODO: security: login failure shouldn't provide any extra information on the nature of the failure
+                # Translators: Username doesn't exist at login
+                message = _("Username doesn't exist!")
+                #message = '用户不存在！'
                 return render(request, 'login/login.html', {'message': message})
 
             if user.password == password:
                 # print(username, password)
                 return redirect('/index/')
             else:
-                message = '密码不正确！'
+                message = _('Incorrect password!')
+                #message = '密码不正确！'
                 return render(request, 'login/login.html', {'message': message})
         else:
             return render(request, 'login/login.html', {'message': message})
@@ -64,7 +72,7 @@ def register(request):
         return redirect("/merchant_index/")
     if request.method == "POST":
         register_form = forms.RegisterForm(request.POST)
-        message = "请检查填写的内容！"
+        message = _('Please verify the content of the form')
         if register_form.is_valid():  # 获取数据
             username = register_form.cleaned_data['username']
             password1 = register_form.cleaned_data['password1']
@@ -81,16 +89,19 @@ def register(request):
             # merchantstatus = register_form.cleaned_data['merchantstatus']
             merchantintro = register_form.cleaned_data['merchantintro']
             if password1 != password2:  # 判断两次密码是否相同
-                message = "两次输入的密码不同！"
+                message = _("The two passwords do not match")
+                #message = "两次输入的密码不同！"
                 return render(request, 'renoapp/register.html', locals())
             else:
                 same_name_user = models.Merchant.objects.filter(merchantid=username)
                 if same_name_user:  # 用户名唯一
-                    message = '用户已经存在，请重新选择用户名！'
+                    message = _('The username exists already!')
+                    #message = '用户已经存在，请重新选择用户名！'
                     return render(request, 'renoapp/register.html', locals())
                 same_email_user = models.Merchant.objects.filter(emailaddr=email)
                 if same_email_user:  # 邮箱地址唯一
-                    message = '该邮箱地址已被注册，请使用别的邮箱！'
+                    message = _("There's an existing account with the supplied email address! Please login or register with another email address.")
+                    #message = '该邮箱地址已被注册，请使用别的邮箱！'
                     return render(request, 'renoapp/register.html', locals())
 
                 # 当一切都OK的情况下，创建新用户
@@ -130,7 +141,8 @@ def findback(request):
         # 确保当数据请求中没有username键时不会抛出异常，而是返回一个我们指定的默认值None
         username = request.POST.get('username', None)
         username = username.strip()
-        message = "请正确填写会员号或手机号！"
+        message = _('A valid member number or cell phone number is required!')
+        #message = "请正确填写会员号或手机号！"
 
         if username:    # 确保用户名和手机号都不为空
             try:
@@ -139,10 +151,12 @@ def findback(request):
                 try:
                     user = models.Merchant.objects.get(phoneno=username)
                 except:
-                    message = "用户名或手机号不存在！"
+                    message = _("The provided member number or phone number doesn't exist in our system!")
+                    #message = "用户名或手机号不存在！"
                     return render(request, 'login/findback.html', {"message": message})
             # emailaddress=user.emailaddr
-            message = '密码已发送至： '+user.emailaddr
+            message = _("The password has been sent to {emailAddress}") % {'emailAddress':user.emailaddr}
+            #message = '密码已发送至： '+user.emailaddr
             print(username, user.password, user.emailaddr)
             send(user.merchantid,user.password,user.emailaddr,)
             return render(request, 'login/findback.html', {"message": message})
@@ -155,10 +169,14 @@ def findback(request):
 def send(userid, passwd, emailid):
     # msg='<a href="http://www.baidu.com" target="_blank">点击激活</a>'
     # send_mail('测试邮件','Here is the message.',settings.EMAIL_FROM,['zhubaolin@gmail.com'],html_message=msg)
-    msg='您的用户名是：'+userid+'      '+"\n"+'您的密码是：'+passwd
-    send_mail('爱加家i++密码找回邮件', msg, 'zhubl2000@yahoo.com', [emailid],
+    msg=_("Your username is: '{userid}'")%{'userid':userid} +'      \n'+ _("Your password is: '{passwd}'")%{'passwd':passwd}
+    #msg='您的用户名是：'+userid+'      '+"\n"+'您的密码是：'+passwd
+    send_mail(_('i++ password recovery message'), msg, 'zhubl2000@yahoo.com', [emailid],
               fail_silently=False)
-    print('已成功发送至：'+emailid)
+    #send_mail('爱加家i++密码找回邮件', msg, 'zhubl2000@yahoo.com', [emailid],
+    #          fail_silently=False)
+    print(_(' has been successfully sent to {emailid}')%{'emailid':emailid})
+    #print('已成功发送至：'+emailid)
     # findpassword('发送完成了')
     # return render(request, 'base.html')
     return
