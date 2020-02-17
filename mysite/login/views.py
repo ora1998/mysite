@@ -1,5 +1,4 @@
 # from django.http import HttpResponse
-import json
 
 from django.shortcuts import render
 from django.shortcuts import redirect
@@ -9,9 +8,7 @@ from . import forms
 
 
 from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404,get_list_or_404
 import datetime
-from django.views.decorators.csrf import csrf_exempt
 # Create your views here.
 # Locale support
 from django.utils.translation import gettext as _
@@ -28,7 +25,6 @@ def login(request):
         password = request.POST.get('password')
         # Translators: this default message for a username/password login attempt
         message = _('Please verify the content of the form')
-        #message = '请检查填写的内容！'
         if username.strip() and password:
             # print(username + ":" + password)
             # 用户名字符合法性验证
@@ -41,7 +37,6 @@ def login(request):
                 # TODO: security: login failure shouldn't provide any extra information on the nature of the failure
                 # Translators: Username doesn't exist at login
                 message = _("Username doesn't exist!")
-                #message = '用户不存在！'
                 return render(request, 'login/login.html', {'message': message})
 
             if user.password == password:
@@ -49,7 +44,6 @@ def login(request):
                 return redirect('/index/')
             else:
                 message = _('Incorrect password!')
-                #message = '密码不正确！'
                 return render(request, 'login/login.html', {'message': message})
         else:
             return render(request, 'login/login.html', {'message': message})
@@ -90,17 +84,16 @@ def register(request):
             merchantintro = register_form.cleaned_data['merchantintro']
             if password1 != password2:  # 判断两次密码是否相同
                 message = _("The two passwords do not match")
-                #message = "两次输入的密码不同！"
                 return render(request, 'renoapp/register.html', locals())
             else:
                 same_name_user = models.Merchant.objects.filter(merchantid=username)
                 if same_name_user:  # 用户名唯一
-                    message = _('The username exists already!')
-                    #message = '用户已经存在，请重新选择用户名！'
+                    message = _('The username exists already! Please choose another username.')
                     return render(request, 'renoapp/register.html', locals())
                 same_email_user = models.Merchant.objects.filter(emailaddr=email)
                 if same_email_user:  # 邮箱地址唯一
-                    message = _("There's an existing account with the supplied email address! Please login or register with another email address.")
+                    message = _(
+                        "There's an existing account with this email address! Please login or register with another email address.")
                     #message = '该邮箱地址已被注册，请使用别的邮箱！'
                     return render(request, 'renoapp/register.html', locals())
 
@@ -142,8 +135,6 @@ def findback(request):
         username = request.POST.get('username', None)
         username = username.strip()
         message = _('A valid member number or cell phone number is required!')
-        #message = "请正确填写会员号或手机号！"
-
         if username:    # 确保用户名和手机号都不为空
             try:
                 user = models.Merchant.objects.get(merchantid=username)
@@ -152,11 +143,9 @@ def findback(request):
                     user = models.Merchant.objects.get(phoneno=username)
                 except:
                     message = _("The provided member number or phone number doesn't exist in our system!")
-                    #message = "用户名或手机号不存在！"
                     return render(request, 'login/findback.html', {"message": message})
             # emailaddress=user.emailaddr
             message = _("The password has been sent to {emailAddress}") % {'emailAddress':user.emailaddr}
-            #message = '密码已发送至： '+user.emailaddr
             print(username, user.password, user.emailaddr)
             send(user.merchantid,user.password,user.emailaddr,)
             return render(request, 'login/findback.html', {"message": message})
